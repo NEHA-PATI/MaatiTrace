@@ -60,10 +60,42 @@ def clear_existing_cells(engine):
 
     with engine.begin() as conn:
 
-        conn.execute(text("""
+        # =============================================
+        # CHECK IF TABLE EXISTS
+        # =============================================
+
+        result = conn.execute(text("""
+
+            SELECT EXISTS (
+
+                SELECT FROM information_schema.tables
+
+                WHERE table_name = 'h3_cells'
+
+            );
+
+        """))
+
+        table_exists = result.scalar()
+
+        # =============================================
+        # TRUNCATE ONLY IF EXISTS
+        # =============================================
+
+        if table_exists:
+
+            print("\nClearing old H3 cells...\n")
+
+            conn.execute(text("""
+
                 TRUNCATE h3_cells
                 RESTART IDENTITY;
-                """))
+
+            """))
+
+        else:
+
+            print("\nh3_cells table does not exist yet.\n")
 
 
 # ---------------------------------------------------

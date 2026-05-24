@@ -339,6 +339,10 @@ import {
 
 import Map from "react-map-gl/maplibre";
 
+import maplibregl from "maplibre-gl";
+
+import { Protocol } from "pmtiles";
+
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import {
@@ -349,6 +353,16 @@ import {
 
 } from "../../constants/mapConfig";
 
+// =====================================================
+// PMTILES PROTOCOL
+// =====================================================
+
+const protocol = new Protocol();
+
+maplibregl.addProtocol(
+  "pmtiles",
+  protocol.tile
+);
 
 // =====================================================
 // MAP VIEW
@@ -361,7 +375,6 @@ function MapView() {
   // =================================================
 
   const mapRef = useRef(null);
-
 
   // =================================================
   // MAP LOAD
@@ -377,7 +390,7 @@ function MapView() {
       mapRef.current.getMap();
 
     // ===============================================
-    // VECTOR TILE SOURCE
+    // PMTILES SOURCE
     // ===============================================
 
     map.addSource(
@@ -386,20 +399,14 @@ function MapView() {
 
         type: "vector",
 
-        tiles: [
+        url:
+          "pmtiles://http://localhost:5173/h3_tiles.pmtiles",
 
-          "http://127.0.0.1:8001/api/v1/tiles/{z}/{x}/{y}.mvt",
-
-        ],
-
-        minzoom: 0,
-
-        maxzoom: 14,
       }
     );
 
     console.log(
-      "VECTOR TILE SOURCE ADDED"
+      "PMTILES SOURCE ADDED"
     );
 
     // ===============================================
@@ -453,7 +460,7 @@ function MapView() {
     });
 
     console.log(
-      "VECTOR TILE LAYERS ADDED"
+      "PMTILES LAYERS ADDED"
     );
   };
 
