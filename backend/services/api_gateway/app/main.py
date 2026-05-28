@@ -3,6 +3,7 @@
 # =====================================================
 
 from fastapi import FastAPI
+from core.config.settings import get_settings
 
 from fastapi.middleware.cors import (
     CORSMiddleware,
@@ -24,6 +25,8 @@ app = FastAPI(
     title="Agri Platform API",
     version="1.0.0",
 )
+
+settings = get_settings()
 
 # =====================================================
 # CORS
@@ -52,7 +55,7 @@ app.add_middleware(
 
 app.include_router(
     api_v1_router,
-    prefix="/api/v1",
+    prefix=settings.api_v1_prefix,
 )
 
 # =====================================================

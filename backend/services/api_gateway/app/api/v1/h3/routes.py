@@ -41,7 +41,7 @@ router = APIRouter()
 # DATABASE CONFIG
 # =====================================================
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5433/agri_platform"
+DATABASE_URL = "postgresql://postgres:Mikaelson@127.0.0.1:5432/agri_platform"
 
 engine = create_engine(DATABASE_URL)
 

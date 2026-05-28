@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5433/agri_platform"
+DATABASE_URL = "postgresql+asyncpg://postgres:Mikaelson@127.0.0.1:5432/agri_platform"
 
 
 async def test_connection():

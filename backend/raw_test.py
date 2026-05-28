@@ -8,10 +8,10 @@ async def main():
 
     conn = await asyncpg.connect(
         user="postgres",
-        password="postgres",
+        password="Mikaelson",
         database="agri_platform",
         host="127.0.0.1",
-        port=5433,
+        port=5432,
         ssl=False,
     )
 

@@ -1,81 +1,82 @@
 import geopandas as gpd
-from sqlalchemy import create_engine
 
-DATABASE_URL = "postgresql://postgres:postgres" "@127.0.0.1:5433/agri_platform"
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from geoalchemy2.shape import from_shape
+
+from core.database.models.state import State
+from core.database.models.district import District
+
+# =====================================================
+# DATABASE
+# =====================================================
+
+DATABASE_URL = "postgresql+psycopg2://" "postgres:Mikaelson@127.0.0.1:5432/agri_platform"
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+)
+
+# =====================================================
+# MAIN
+# =====================================================
 
 
 def main():
 
-    print("\nLoading GeoJSON...\n")
+    print("\nLOADING GEOJSON...\n")
 
     gdf = gpd.read_file(
         "data/boundaries/sambalpur.geojson",
         engine="pyogrio",
     )
 
-    print("\nORIGINAL DATA:\n")
-    print(gdf.head())
-
-    print("\nORIGINAL COLUMNS:\n")
-    print(gdf.columns)
-
-    # -------------------------------------------------
-    # CRS NORMALIZATION
-    # -------------------------------------------------
-
-    print("\nConverting CRS to EPSG:4326...\n")
-
     gdf = gdf.to_crs(epsg=4326)
 
-    # -------------------------------------------------
-    # SCHEMA NORMALIZATION
-    # -------------------------------------------------
-
-    print("\nNormalizing schema...\n")
-
-    # GeoJSON has:
-    # district, geometry
-
-    # Database expects:
-    # name, state, geometry
-
-    gdf = gdf.rename(columns={"district": "name"})
-
-    gdf["state"] = "Odisha"
-
-    # keep only DB columns
-    gdf = gdf[
-        [
-            "name",
-            "state",
-            "geometry",
-        ]
-    ]
-
-    print("\nFINAL DATA:\n")
-    print(gdf.head())
-
-    print("\nFINAL COLUMNS:\n")
-    print(gdf.columns)
-
-    # -------------------------------------------------
-    # DATABASE LOAD
-    # -------------------------------------------------
-
-    print("\nCreating DB connection...\n")
-
-    engine = create_engine(DATABASE_URL)
-
-    print("\nUploading to PostGIS...\n")
-
-    gdf.to_postgis(
-        name="districts",
-        con=engine,
-        if_exists="append",
-        index=False,
+    gdf = gdf.rename(
+        columns={
+            "district": "name",
+        }
     )
 
-    print("\nSUCCESSFULLY LOADED SAMBALPUR\n")
+    with Session(engine) as session:
+
+        odisha = session.query(State).filter(State.name == "Odisha").first()
+
+        if not odisha:
+
+            print("ODISHA NOT FOUND")
+
+            return
+
+        for _, row in gdf.iterrows():
+
+            district = (
+                session.query(District).filter(District.name == row["name"]).first()
+            )
+
+            if district:
+
+                district.geometry = from_shape(row["geometry"], srid=4326)
+
+                print(f"UPDATED: {district.name}")
+
+            else:
+
+                district = District(
+                    state_id=odisha.id,
+                    name=row["name"],
+                    geometry=from_shape(row["geometry"], srid=4326),
+                )
+
+                session.add(district)
+
+                print(f"CREATED: {district.name}")
+
+        session.commit()
+
+    print("\nSAMBALPUR LOADED\n")
 
 
 if __name__ == "__main__":

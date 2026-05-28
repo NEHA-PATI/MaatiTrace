@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from core.database.base import Base
+import core.database.base_imports
 
 # =====================================================
 # ALEMBIC CONFIG
